@@ -53,6 +53,7 @@
 ## About The Project
 
 ![https://api.matricapp.com/storage/decks/299/ss1.png](https://api.matricapp.com/storage/decks/299/ss1.png)
+[Video of it in action](https://youtu.be/KDztA3kJCUg)
 
 
 ### Built With
