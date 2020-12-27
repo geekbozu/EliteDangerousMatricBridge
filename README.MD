@@ -127,7 +127,7 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 * EliteAPI and Somfic for the awesome library and help with it on discord
 * Ex Machina labs - For matric and the support
-
+* [Icons curtosy of Streamdeck-elite-icons](https://github.com/Ordo-Corona-Stellarum/streamdeck-elite-icons)
 
 
 
