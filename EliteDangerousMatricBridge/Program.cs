@@ -22,7 +22,7 @@ namespace EDAPITEST
                 .ConfigureLogging((context, logger) =>
                 {
                     logger.ClearProviders();
-                    logger.SetMinimumLevel(LogLevel.Debug);
+                    logger.SetMinimumLevel(LogLevel.Information);
                     logger.AddPrettyConsole(ConsoleThemes.Code);
                 })
                 .ConfigureServices((context, service) =>

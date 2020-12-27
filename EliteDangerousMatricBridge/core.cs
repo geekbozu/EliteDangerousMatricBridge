@@ -46,15 +46,15 @@ namespace EDAPITEST
             var parser = new FileIniDataParser();
             if (!File.Exists(ConfigName))
             {
-                File.Create(ConfigName);
+                File.Create(ConfigName).Close();
+                
             };
             InitData = parser.ReadFile(ConfigName);
             PIN = InitData["DECK"]["PIN"];
             matric = new Matric.Integration.Matric(AppName);
-            if (String.IsNullOrEmpty(PIN)){
+            if (String.IsNullOrEmpty(PIN)){ 
                 matric.RequestAuthorizePrompt();
                 PIN = Console.ReadLine();
-                
             }
             matric.PIN = PIN;
             matric.OnConnectedClientsReceived += Matric_OnConnectedClientsReceived;

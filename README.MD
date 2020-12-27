@@ -77,10 +77,15 @@ To get a local copy up and running follow these simple steps.
 
 * matricapp
 * Elite Dangerous 
-
+* net5.0 
 ### Installation
 
-IDK YET. Probably just going to be a binary download. 
+install matricapp
+Enable 3rd party integration in matric app.
+Execute release binary. 
+Provide pin from matric app.
+Enjoy
+
 
 
 
