@@ -15,7 +15,7 @@ namespace EDAPITEST
     {
         private readonly ILogger<Core> _log;
         private readonly IEliteDangerousAPI _api;
-        static string AppName = "ED Matric Deck";
+        static string AppName = "EDMatricBridge";
         public static string DECK_ID = "72b9fc1a-2386-45b2-abbb-70533cdacb1b";
         static string ConfigName = "EDConfig.ini";
         public static string PIN = "";
@@ -42,6 +42,7 @@ namespace EDAPITEST
             // Get our dependencies through dependency injection
             _log = log;
             _api = api;
+            Console.Title = AppName;
             _log.LogInformation("Authorize connection in MATRIC, then enter PIN:");
             var parser = new FileIniDataParser();
             if (!File.Exists(ConfigName))
@@ -166,25 +167,133 @@ namespace EDAPITEST
                     matric.SetButtonsVisualState(CLIENT_ID, HardPointsIn);
                 }
             };
-
+            List<SetButtonsVisualStateArgs> NightVisionOn = new List<SetButtonsVisualStateArgs>();
+            NightVisionOn.Add(new SetButtonsVisualStateArgs(null, "on", buttonName: "BTN_NIGHTVISION"));
+            List<SetButtonsVisualStateArgs> NightVisionOff = new List<SetButtonsVisualStateArgs>();
+            NightVisionOff.Add(new SetButtonsVisualStateArgs(null, "off", buttonName: "BTN_NIGHTVISION"));
+            _api.Status.NightVision.OnChange += (sender, isDeployed) =>
+            {
+                if (isDeployed)
+                {
+                    matric.SetButtonsVisualState(CLIENT_ID, NightVisionOn);
+                }
+                else
+                {
+                    matric.SetButtonsVisualState(CLIENT_ID, NightVisionOff);
+                }
+            };
+            List<SetButtonsVisualStateArgs> LightsOn = new List<SetButtonsVisualStateArgs>();
+            LightsOn.Add(new SetButtonsVisualStateArgs(null, "on", buttonName: "BTN_LIGHTS"));
+            List<SetButtonsVisualStateArgs> LightsOff = new List<SetButtonsVisualStateArgs>();
+            LightsOff.Add(new SetButtonsVisualStateArgs(null, "off", buttonName: "BTN_LIGHTS"));
+            _api.Status.Lights.OnChange += (sender, isDeployed) =>
+            {
+                if (isDeployed)
+                {
+                    matric.SetButtonsVisualState(CLIENT_ID, LightsOn);
+                }
+                else
+                {
+                    matric.SetButtonsVisualState(CLIENT_ID, LightsOff);
+                }
+            };
+            //Taking Damage orange
+            _api.Events.HeatDamageEvent += (sender, e) =>
+            {
+                matric.SetButtonProperties(CLIENT_ID, null, backgroundcolorOff: "#FF6500", buttonName: "BTN_HEATSINK");
+            };
+            //Close to taking damage yellow
+            _api.Events.HeatWarningEvent += (sender, e) =>
+            {
+                matric.SetButtonProperties(CLIENT_ID, null, backgroundcolorOff: "yellow", buttonName:"BTN_HEATSINK");
+            };
+            //On Docking event start make icon yellow
+            _api.Events.DockingRequestedEvent += (sender, e) =>
+            {
+                matric.SetButtonProperties(CLIENT_ID, null, backgroundcolorOff: "yellow",buttonName:"BTN_DOCKING");
+            };
+            //If event was denied make it Traffic Cone Orange
+            _api.Events.DockingDeniedEvent += (sender, e) =>
+            {
+                matric.SetButtonProperties(CLIENT_ID, null, backgroundcolorOff: "orange", buttonName: "BTN_DOCKING");
+            };
+            //If Granted Go Green
             _api.Events.DockingGrantedEvent += (sender, e) =>
             {
-                matric.SetActivePage(CLIENT_ID, DeckPages.Docking);
-                matric.SetButtonProperties(CLIENT_ID, Buttons.LandindPad, text: "Landing Pad: " + e.LandingPad, backgroundcolorOff: "#df1616",
-                    backgroundcolorOn: "white");
+                matric.SetButtonProperties(CLIENT_ID, null, backgroundcolorOff: "green", buttonName: "BTN_DOCKING");
             };
-            
+            //If we cancel it go back to null
+            _api.Events.DockingCancelledEvent += (sender, e) =>
+            {
+                matric.SetButtonProperties(CLIENT_ID, null, backgroundcolorOff: null, buttonName: "BTN_DOCKING");
+            };
+            //If timeout go back to clear, Would like to go error color for a moment then clear but another day
+            _api.Events.DockingTimeoutEvent += (sender, e) =>
+            {
+                matric.SetButtonProperties(CLIENT_ID, null, backgroundcolorOff: null, buttonName: "BTN_DOCKING");
+            };
+
             _api.Events.DockedEvent += (sender, e) =>
             {
                 matric.SetActivePage(CLIENT_ID, DeckPages.Docking);
                 matric.SetButtonProperties(CLIENT_ID, Buttons.LandindPad, text: "Docked: " + e.StationName, backgroundcolorOff: "#df1616",
                     backgroundcolorOn: "white");
-              
+                matric.SetButtonProperties(CLIENT_ID, null, backgroundcolorOff: null, buttonName: "BTN_DOCKING");
+
+                if (_api.Status.Gear.Value)
+                {
+                    matric.SetButtonsVisualState(CLIENT_ID, LandingOn);
+                }
+                else
+                {
+                    matric.SetButtonsVisualState(CLIENT_ID, LandingOff);
+                }
+                if (_api.Status.FlightAssist.Value)
+                {
+                    matric.SetButtonsVisualState(CLIENT_ID, FlightAssistOn);
+                }
+                else
+                {
+                    matric.SetButtonsVisualState(CLIENT_ID, FlightAssistOff);
+                }
+                if (_api.Status.SilentRunning.Value)
+                {
+                    matric.SetButtonsVisualState(CLIENT_ID, SilentOn);
+                }
+                else
+                {
+                    matric.SetButtonsVisualState(CLIENT_ID, SilentOff);
+                }
             };
 
             _api.Events.UndockedEvent += (sender, e) =>
             {
                 matric.SetActivePage(CLIENT_ID, DeckPages.Flight);
+                if (_api.Status.Gear.Value)
+                {
+                    matric.SetButtonsVisualState(CLIENT_ID, LandingOn);
+                }
+                else
+                {
+                    matric.SetButtonsVisualState(CLIENT_ID, LandingOff);
+                }
+                if (_api.Status.FlightAssist.Value)
+                {
+                    matric.SetButtonsVisualState(CLIENT_ID, FlightAssistOn);
+                }
+                else
+                {
+                    matric.SetButtonsVisualState(CLIENT_ID, FlightAssistOff);
+                }
+                if (_api.Status.SilentRunning.Value)
+                {
+                    matric.SetButtonsVisualState(CLIENT_ID, SilentOn);
+                }
+                else
+                {
+                    matric.SetButtonsVisualState(CLIENT_ID, SilentOff);
+                }
+
             };
             
 
